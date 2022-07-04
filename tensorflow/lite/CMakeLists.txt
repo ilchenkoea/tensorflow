@@ -234,9 +234,29 @@ if(TFLITE_ENABLE_GPU)
     find_package(opengl_headers REQUIRED)
     find_package(egl_headers REQUIRED)
   endif()
+
+  # add OpelGL part
+  populate_tflite_source_vars(
+        "delegates/gpu/gl" TFLITE_DELEGATES_GPU_GL_SRCS
+        FILTER "(_test)\\.(cc|h)$"
+  )
+  populate_tflite_source_vars(
+          "delegates/gpu/gl/kernels" TFLITE_DELEGATES_GPU_GL_KERNELS_SRCS
+          FILTER "(_test)\\.(cc|h)$"
+  )
+  populate_tflite_source_vars(
+          "delegates/gpu/gl/compiler" TFLITE_DELEGATES_GPU_GL_COMPILER_SRCS
+          FILTER "(_test)\\.(cc|h)$"
+  )
+  populate_tflite_source_vars(
+          "delegates/gpu/gl/workgroups" TFLITE_DELEGATES_GPU_GL_WORKGROUPS_SRCS
+          FILTER "(_test)\\.(cc|h)$"
+  )
+
+  # add OpelGL part
   populate_tflite_source_vars(
     "delegates/gpu/cl" TFLITE_DELEGATES_GPU_CL_SRCS
-    FILTER "(_test|gl_interop|gpu_api_delegate|egl_sync)\\.(cc|h)$"
+    FILTER "(_test|gl_interop|gpu_api_delegate)\\.(cc|h)$"
   )
   populate_tflite_source_vars(
     "delegates/gpu/cl/default" TFLITE_DELEGATES_GPU_CL_DEFAULT_SRCS
@@ -291,6 +311,10 @@ if(TFLITE_ENABLE_GPU)
     ${TFLITE_SOURCE_DIR}/delegates/gpu/api.cc
     ${TFLITE_SOURCE_DIR}/delegates/gpu/delegate.cc
     ${TFLITE_SOURCE_DIR}/experimental/acceleration/compatibility/android_info.cc
+    ${TFLITE_DELEGATES_GPU_GL_SRCS}
+    ${TFLITE_DELEGATES_GPU_GL_KERNELS_SRCS}
+    ${TFLITE_DELEGATES_GPU_GL_COMPILER_SRCS}
+    ${TFLITE_DELEGATES_GPU_GL_WORKGROUPS_SRCS}
     ${TFLITE_DELEGATES_GPU_CL_SRCS}
     ${TFLITE_DELEGATES_GPU_CL_DEFAULT_SRCS}
     ${TFLITE_DELEGATES_GPU_CL_KERNELS_SRCS}
@@ -361,7 +385,7 @@ if(TFLITE_ENABLE_GPU)
      target_link_libraries(${lib_name})
    endforeach()
 endif()
-  list(APPEND TFLITE_TARGET_PUBLIC_OPTIONS "-DCL_DELEGATE_NO_GL" "-DEGL_NO_X11")
+  list(APPEND TFLITE_TARGET_PUBLIC_OPTIONS "-DEGL_NO_X11")
   list(APPEND TFLITE_TARGET_DEPENDENCIES
     absl::any
     absl::flat_hash_map
