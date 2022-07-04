@@ -253,7 +253,7 @@ if(TFLITE_ENABLE_GPU)
           FILTER "(_test)\\.(cc|h)$"
   )
 
-  # add OpelGL part
+  # add OpelCL part
   populate_tflite_source_vars(
     "delegates/gpu/cl" TFLITE_DELEGATES_GPU_CL_SRCS
     FILTER "(_test|gl_interop|gpu_api_delegate)\\.(cc|h)$"
@@ -386,6 +386,7 @@ if(TFLITE_ENABLE_GPU)
    endforeach()
 endif()
   list(APPEND TFLITE_TARGET_PUBLIC_OPTIONS "-DEGL_NO_X11")
+  list(APPEND TFLITE_TARGET_PUBLIC_OPTIONS "-DEGL_EGLEXT_PROTOTYPES")
   list(APPEND TFLITE_TARGET_DEPENDENCIES
     absl::any
     absl::flat_hash_map
