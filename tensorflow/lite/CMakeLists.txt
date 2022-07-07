@@ -79,7 +79,7 @@ if(TFLITE_KERNEL_TEST AND ${CMAKE_CROSSCOMPILING})
   endif()
 endif()
 
-set(CMAKE_CXX_STANDARD 14)  # Some components require C++14.
+set(CMAKE_CXX_STANDARD 17)  # Some components require C++17.
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(_TFLITE_ENABLE_RUY "${TFLITE_ENABLE_RUY}")
 if("${CMAKE_SYSTEM_NAME}" STREQUAL "Android")
@@ -330,67 +330,45 @@ if(TFLITE_ENABLE_GPU)
     ${TFLITE_SOURCE_DIR}/tools/versioning/gpu_compatibility.cc
     ${TFLITE_SOURCE_DIR}/tools/versioning/op_signature.cc
   )
-  if(TFLITE_ENABLE_METAL AND "${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin")
-    #
-    # libmetal_delegate library
-    #
-    enable_language(OBJCXX)
-    list(APPEND TFLITE_DELEGATES_METAL_SRCS
-      ${TFLITE_SOURCE_DIR}/delegates/gpu/metal_delegate.mm
-    )
-    add_library(metal_delegate STATIC
-      ${TFLITE_DELEGATES_METAL_SRCS}
-    )
-    target_include_directories(metal_delegate PUBLIC
-      ${CMAKE_BINARY_DIR}/abseil-cpp
-      ${CMAKE_BINARY_DIR}/flatbuffers/include
-    )
-
-    #
-    # supplementary libraries for libmetal_delegate
-    #
-    list(APPEND CC_SRCS
-        buffer
-        compute_task
-        inference_context
-        linear_storage
-        metal_arguments
-        metal_device
-        metal_spatial_tensor
-        texture2d
-    )
-   SET(METAL_DELEGATE_PATH ${TFLITE_SOURCE_DIR}/delegates/gpu/metal/)
-
-   foreach(lib_name ${CC_SRCS})
-     set_source_files_properties(${METAL_DELEGATE_PATH}${lib_name}.cc  PROPERTIES LANGUAGE OBJCXX)
-     add_library("${lib_name}" STATIC ${METAL_DELEGATE_PATH}${lib_name}.cc)
-     target_include_directories("${lib_name}" PUBLIC
-       ${CMAKE_BINARY_DIR}/abseil-cpp
-       ${CMAKE_BINARY_DIR}/flatbuffers/include
-     )
-     set_target_properties(${lib_name} PROPERTIES LINKER_LANGUAGE OBJCXX)
-     target_link_libraries(${lib_name})
-   endforeach()
-
-   list(APPEND MM_SRCS
-     buffer_convert
-     common
-   )
-   foreach(lib_name ${MM_SRCS})
-     add_library("${lib_name}" STATIC ${METAL_DELEGATE_PATH}${lib_name}.mm)
-     target_include_directories("${lib_name}" PUBLIC
-       ${CMAKE_BINARY_DIR}/abseil-cpp
-       ${CMAKE_BINARY_DIR}/flatbuffers/include
-     )
-     target_link_libraries(${lib_name})
-   endforeach()
-endif()
   list(APPEND TFLITE_TARGET_PUBLIC_OPTIONS "-DEGL_NO_X11")
   list(APPEND TFLITE_TARGET_PUBLIC_OPTIONS "-DEGL_EGLEXT_PROTOTYPES")
   list(APPEND TFLITE_TARGET_DEPENDENCIES
     absl::any
     absl::flat_hash_map
   )
+endif()
+set(TFLITE_METAL_SRCS, "")
+if(TFLITE_ENABLE_METAL AND ("${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin" OR "${CMAKE_SYSTEM_NAME}" STREQUAL "iOS"))
+  message("In TFLITE_ENABLE_METAL")
+  #
+  # libmetal_delegate library
+  #
+  enable_language(OBJCXX)
+  list(APPEND TFLITE_METAL_SRCS
+          ${TFLITE_SOURCE_DIR}/delegates/gpu/metal_delegate.mm
+  )
+
+  #
+  # supplementary libraries for libmetal_delegate
+  #
+  set(METAL_DELEGATE_PATH ${TFLITE_SOURCE_DIR}/delegates/gpu/metal/)
+  list(APPEND TFLITE_METAL_SRCS
+          ${METAL_DELEGATE_PATH}buffer.cc
+          ${METAL_DELEGATE_PATH}compute_task.cc
+          ${METAL_DELEGATE_PATH}inference_context.cc
+          ${METAL_DELEGATE_PATH}linear_storage.cc
+          ${METAL_DELEGATE_PATH}metal_arguments.cc
+          ${METAL_DELEGATE_PATH}metal_device.cc
+          ${METAL_DELEGATE_PATH}metal_spatial_tensor.cc
+          ${METAL_DELEGATE_PATH}texture2d.cc
+          )
+#  set_source_files_properties(${CC_SRCS} PROPERTIES LANGUAGE OBJCXX)
+
+  list(APPEND TFLITE_METAL_SRCS
+          ${METAL_DELEGATE_PATH}buffer_convert.mm
+          ${METAL_DELEGATE_PATH}common.mm
+          )
+  set_source_files_properties(${TFLITE_METAL_SRCS} PROPERTIES LANGUAGE OBJCXX)
 endif()
 if(_TFLITE_ENABLE_NNAPI)
   find_package(fp16_headers REQUIRED)
@@ -478,6 +456,13 @@ if(CMAKE_SYSTEM_NAME MATCHES "Android")
     ${TFLITE_SOURCE_DIR}/profiling/atrace_profiler.cc
   )
 endif()
+if ("${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin" OR "${CMAKE_SYSTEM_NAME}" STREQUAL "iOS")
+  set(MM_PROFILER_SRC ${TFLITE_SOURCE_DIR}/profiling/signpost_profiler.mm)
+  set_source_files_properties(${MM_PROFILER_SRC} PROPERTIES LANGUAGE OBJCXX)
+  set_source_files_properties(${MM_PROFILER_SRC} PROPERTIES COMPILE_OPTIONS "-fno-objc-arc")
+  list(APPEND TFLITE_PROFILER_SRCS ${MM_PROFILER_SRC})
+  message("${TFLITE_PROFILER_SRCS}")
+endif()
 
 # Common include directories
 set(TFLITE_INCLUDE_DIRS
@@ -516,6 +501,7 @@ add_library(tensorflow-lite
   ${TFLITE_PROFILER_SRCS}
   ${TFLITE_SOURCE_DIR}/kernels/internal/utils/sparsity_format_converter.cc
   ${TFLITE_SOURCE_DIR}/schema/schema_utils.cc
+  ${TFLITE_METAL_SRCS}
 )
 target_include_directories(tensorflow-lite
   PUBLIC

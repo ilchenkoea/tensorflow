@@ -35,6 +35,10 @@ if(NOT flatbuffers_POPULATED)
 endif()
 
 option(FLATBUFFERS_BUILD_TESTS OFF)
+if ("${CMAKE_SYSTEM_NAME}" STREQUAL "iOS" OR "${CMAKE_SYSTEM_NAME}" STREQUAL "Android")
+  option(FLATBUFFERS_INSTALL OFF)
+  option(FLATBUFFERS_BUILD_FLATC OFF)
+endif()
 # Required for Windows, since it has macros called min & max which
 # clashes with std::min
 add_definitions(-DNOMINMAX=1)
