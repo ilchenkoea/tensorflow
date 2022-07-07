@@ -65,7 +65,8 @@ option(TFLITE_ENABLE_NNAPI "Enable NNAPI (Android only)." ON)
 cmake_dependent_option(TFLITE_ENABLE_NNAPI_VERBOSE_VALIDATION "Enable NNAPI verbose validation." OFF
                        "TFLITE_ENABLE_NNAPI" ON)
 option(TFLITE_ENABLE_MMAP "Enable MMAP (unsupported on Windows)" ON)
-option(TFLITE_ENABLE_GPU "Enable GPU" OFF)
+#option(TFLITE_ENABLE_GPU "Enable GPU" OFF)
+option(TFLITE_ENABLE_GL_CL "Enable GPU" OFF)
 option(TFLITE_ENABLE_METAL "Enable Metal delegate (iOS only)" OFF)
 option(TFLITE_ENABLE_XNNPACK "Enable XNNPACK backend" ON)
 option(TFLITE_ENABLE_EXTERNAL_DELEGATE "Enable External Delegate backend" ON)
@@ -95,6 +96,10 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   # 2b96f3662bd776e277f86997659e61046b56c315/tensorflow/lite/tools/make/\
   # Makefile#L157
   set(_TFLITE_ENABLE_MMAP OFF)
+endif()
+set(TFLITE_ENABLE_GPU OFF)
+if (TFLITE_ENABLE_METAL OR TFLITE_ENABLE_GL_CL)
+  set(TFLITE_ENABLE_GPU ON)
 endif()
 # Simplifies inclusion of non-test sources and headers from a directory.
 # SOURCE_DIR: Directory to search for files.
@@ -226,6 +231,7 @@ populate_tflite_source_vars("core/api" TFLITE_CORE_API_SRCS)
 populate_tflite_source_vars("c" TFLITE_C_SRCS)
 populate_tflite_source_vars("delegates" TFLITE_DELEGATES_SRCS)
 if(TFLITE_ENABLE_GPU)
+  # headers is needed by gpu/common
   find_package(opencl_headers REQUIRED)
   find_package(vulkan_headers REQUIRED)
   find_package(fp16_headers REQUIRED)
@@ -234,38 +240,39 @@ if(TFLITE_ENABLE_GPU)
     find_package(opengl_headers REQUIRED)
     find_package(egl_headers REQUIRED)
   endif()
+  if (TFLITE_ENABLE_GL_CL)
+    # add OpelGL part
+    populate_tflite_source_vars(
+          "delegates/gpu/gl" TFLITE_DELEGATES_GPU_GL_SRCS
+          FILTER "(_test)\\.(cc|h)$"
+    )
+    populate_tflite_source_vars(
+            "delegates/gpu/gl/kernels" TFLITE_DELEGATES_GPU_GL_KERNELS_SRCS
+           FILTER "(_test)\\.(cc|h)$"
+    )
+    populate_tflite_source_vars(
+            "delegates/gpu/gl/compiler" TFLITE_DELEGATES_GPU_GL_COMPILER_SRCS
+            FILTER "(_test)\\.(cc|h)$"
+    )
+    populate_tflite_source_vars(
+            "delegates/gpu/gl/workgroups" TFLITE_DELEGATES_GPU_GL_WORKGROUPS_SRCS
+            FILTER "(_test)\\.(cc|h)$"
+    )
 
-  # add OpelGL part
-  populate_tflite_source_vars(
-        "delegates/gpu/gl" TFLITE_DELEGATES_GPU_GL_SRCS
-        FILTER "(_test)\\.(cc|h)$"
-  )
-  populate_tflite_source_vars(
-          "delegates/gpu/gl/kernels" TFLITE_DELEGATES_GPU_GL_KERNELS_SRCS
-          FILTER "(_test)\\.(cc|h)$"
-  )
-  populate_tflite_source_vars(
-          "delegates/gpu/gl/compiler" TFLITE_DELEGATES_GPU_GL_COMPILER_SRCS
-          FILTER "(_test)\\.(cc|h)$"
-  )
-  populate_tflite_source_vars(
-          "delegates/gpu/gl/workgroups" TFLITE_DELEGATES_GPU_GL_WORKGROUPS_SRCS
-          FILTER "(_test)\\.(cc|h)$"
-  )
-
-  # add OpelCL part
-  populate_tflite_source_vars(
-    "delegates/gpu/cl" TFLITE_DELEGATES_GPU_CL_SRCS
-    FILTER "(_test|gl_interop|gpu_api_delegate)\\.(cc|h)$"
-  )
-  populate_tflite_source_vars(
-    "delegates/gpu/cl/default" TFLITE_DELEGATES_GPU_CL_DEFAULT_SRCS
-    FILTER "(_test)\\.(cc|h)$"
-  )
-  populate_tflite_source_vars(
-    "delegates/gpu/cl/kernels" TFLITE_DELEGATES_GPU_CL_KERNELS_SRCS
-    FILTER "(_test)\\.(cc|h)$"
-  )
+    # add OpelCL part
+    populate_tflite_source_vars(
+      "delegates/gpu/cl" TFLITE_DELEGATES_GPU_CL_SRCS
+      FILTER "(_test|gl_interop|gpu_api_delegate)\\.(cc|h)$"
+    )
+    populate_tflite_source_vars(
+      "delegates/gpu/cl/default" TFLITE_DELEGATES_GPU_CL_DEFAULT_SRCS
+      FILTER "(_test)\\.(cc|h)$"
+    )
+    populate_tflite_source_vars(
+      "delegates/gpu/cl/kernels" TFLITE_DELEGATES_GPU_CL_KERNELS_SRCS
+      FILTER "(_test)\\.(cc|h)$"
+    )
+  endif()
   populate_tflite_source_vars(
     "delegates/gpu/common/default" TFLITE_DELEGATES_GPU_COMMON_DEFAULT_SRCS
     FILTER "(_test)\\.(cc|h)$"
