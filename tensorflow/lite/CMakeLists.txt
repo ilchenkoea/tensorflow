@@ -68,6 +68,7 @@ option(TFLITE_ENABLE_MMAP "Enable MMAP (unsupported on Windows)" ON)
 #option(TFLITE_ENABLE_GPU "Enable GPU" OFF)
 option(TFLITE_ENABLE_GL_CL "Enable GPU" OFF)
 option(TFLITE_ENABLE_METAL "Enable Metal delegate (iOS only)" OFF)
+option(TFLITE_ENABLE_COREML "Enable CoreML delegate (iOS only)" OFF)
 option(TFLITE_ENABLE_XNNPACK "Enable XNNPACK backend" ON)
 option(TFLITE_ENABLE_EXTERNAL_DELEGATE "Enable External Delegate backend" ON)
 
@@ -346,7 +347,6 @@ if(TFLITE_ENABLE_GPU)
 endif()
 set(TFLITE_METAL_SRCS, "")
 if(TFLITE_ENABLE_METAL AND ("${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin" OR "${CMAKE_SYSTEM_NAME}" STREQUAL "iOS"))
-  message("In TFLITE_ENABLE_METAL")
   #
   # libmetal_delegate library
   #
@@ -376,6 +376,18 @@ if(TFLITE_ENABLE_METAL AND ("${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin" OR "${CMAKE
           ${METAL_DELEGATE_PATH}common.mm
           )
   set_source_files_properties(${TFLITE_METAL_SRCS} PROPERTIES LANGUAGE OBJCXX)
+endif()
+set(TFLITE_COREML_SRCS, "")
+if (TFLITE_ENABLE_COREML AND ("${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin" OR "${CMAKE_SYSTEM_NAME}" STREQUAL "iOS"))
+  enable_language(OBJCXX)
+  list(APPEND TFLITE_COREML_SRCS
+          ${TFLITE_SOURCE_DIR}/delegates/coreml/coreml_delegate.mm
+          ${TFLITE_SOURCE_DIR}/delegates/coreml/coreml_delegate_kernel.mm
+          ${TFLITE_SOURCE_DIR}/delegates/coreml/coreml_executor.mm
+          )
+  set_source_files_properties(${TFLITE_COREML_SRCS} PROPERTIES LANGUAGE OBJCXX)
+
+  populate_tflite_source_vars("delegates/coreml/builders" TFLITE_COREML_SRCS)
 endif()
 if(_TFLITE_ENABLE_NNAPI)
   find_package(fp16_headers REQUIRED)
@@ -509,6 +521,7 @@ add_library(tensorflow-lite
   ${TFLITE_SOURCE_DIR}/kernels/internal/utils/sparsity_format_converter.cc
   ${TFLITE_SOURCE_DIR}/schema/schema_utils.cc
   ${TFLITE_METAL_SRCS}
+  ${TFLITE_COREML_SRCS}
 )
 target_include_directories(tensorflow-lite
   PUBLIC
