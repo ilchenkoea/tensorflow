@@ -474,7 +474,12 @@ struct GpuInfo {
   bool IsApiVulkan() const;
 
   MetalInfo metal_info;
-  bool IsApiMetal() const;
+  bool IsApiMetal() const {
+#ifdef TFLITE_BUILD_WITH_METAL_DELEGATE
+    return gpu_api == GpuApi::kMetal;
+#endif
+    return false;
+  }
 
   OpenClInfo opencl_info;
   bool IsApiOpenCl() const;

@@ -263,7 +263,7 @@ if(TFLITE_ENABLE_GPU)
     # add OpelCL part
     populate_tflite_source_vars(
       "delegates/gpu/cl" TFLITE_DELEGATES_GPU_CL_SRCS
-      FILTER "(_test|gl_interop|gpu_api_delegate)\\.(cc|h)$"
+      FILTER "(_test|gpu_api_delegate)\\.(cc|h)$"
     )
     populate_tflite_source_vars(
       "delegates/gpu/cl/default" TFLITE_DELEGATES_GPU_CL_DEFAULT_SRCS
@@ -273,9 +273,6 @@ if(TFLITE_ENABLE_GPU)
       "delegates/gpu/cl/kernels" TFLITE_DELEGATES_GPU_CL_KERNELS_SRCS
       FILTER "(_test)\\.(cc|h)$"
     )
-
-    list(APPEND TFLITE_DELEGATES_GPU_CL_KERNELS_SRCS
-            ${TFLITE_SOURCE_DIR}/delegates/gpu/common/tasks/conv_powervr.cc)
   endif()
   populate_tflite_source_vars(
     "delegates/gpu/common/default" TFLITE_DELEGATES_GPU_COMMON_DEFAULT_SRCS
@@ -306,7 +303,7 @@ if(TFLITE_ENABLE_GPU)
   populate_tflite_source_vars(
     "delegates/gpu/common/tasks"
     TFLITE_DELEGATES_GPU_COMMON_TASKS_SRCS
-    FILTER "(_test|conv_metal|conv_metal_simd|conv_powervr)\\.(cc|h)$"
+    FILTER "(_test|conv_metal|conv_metal_simd)\\.(cc|h)$"
   )
   populate_tflite_source_vars(
     "delegates/gpu/common/tasks/special"
@@ -384,6 +381,7 @@ if(TFLITE_ENABLE_METAL AND ("${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin" OR "${CMAKE
           ${TFLITE_SOURCE_DIR}/delegates/gpu/common/tasks/conv_metal.cc
           ${TFLITE_SOURCE_DIR}/delegates/gpu/common/tasks/conv_metal_simd.cc
           )
+  list(APPEND TFLITE_TARGET_PUBLIC_OPTIONS "-DTFLITE_BUILD_WITH_METAL_DELEGATE")
 endif()
 set(TFLITE_COREML_SRCS, "")
 if (TFLITE_ENABLE_COREML AND ("${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin" OR "${CMAKE_SYSTEM_NAME}" STREQUAL "iOS"))

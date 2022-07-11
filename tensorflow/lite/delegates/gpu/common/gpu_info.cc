@@ -956,8 +956,6 @@ bool GpuInfo::IsApiOpenGl31OrAbove() const {
 
 bool GpuInfo::IsApiVulkan() const { return gpu_api == GpuApi::kVulkan; }
 
-bool GpuInfo::IsApiMetal() const { return gpu_api == GpuApi::kMetal; }
-
 bool GpuInfo::IsApiOpenCl() const { return gpu_api == GpuApi::kOpenCl; }
 
 bool GpuInfo::IsGlsl() const { return IsApiOpenGl() || IsApiVulkan(); }
