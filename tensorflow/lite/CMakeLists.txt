@@ -153,6 +153,14 @@ find_package(neon2sse REQUIRED)
 find_package(clog REQUIRED)
 find_package(cpuinfo REQUIRED)  #CPUINFO is used by XNNPACK and RUY library
 find_package(ruy REQUIRED)
+set(TFLITE_TARGET_DEPENDENCIES "")
+if (TFLITE_ENABLE_COREML)
+  find_package(Protobuf REQUIRED)
+  include_directories(Protobuf_INCLUDE_DIRS)
+  find_package(coremltools REQUIRED)
+  list(APPEND TFLITE_TARGET_DEPENDENCIES coremltools)
+  list(APPEND TFLITE_TARGET_DEPENDENCIES protobuf::libprotobuf-lite)
+endif()
 # Generate TensorFlow Lite FlatBuffer code.
 # We used to have an actual compilation logic with flatc but decided to use
 # schema_generated.h since flatc doesn't work with cross compilation.
@@ -167,7 +175,6 @@ endif()
 set(TFLITE_TARGET_PUBLIC_OPTIONS "")
 set(TFLITE_TARGET_PRIVATE_OPTIONS "")
 # Additional library dependencies based upon enabled features.
-set(TFLITE_TARGET_DEPENDENCIES "")
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang$")
   # TFLite uses deprecated methods in neon2sse which generates a huge number of
   # warnings so surpress these until they're fixed.
@@ -394,6 +401,8 @@ if (TFLITE_ENABLE_COREML AND ("${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin" OR "${CMA
   set_source_files_properties(${TFLITE_COREML_SRCS} PROPERTIES LANGUAGE OBJCXX)
 
   populate_tflite_source_vars("delegates/coreml/builders" TFLITE_COREML_SRCS)
+  list(APPEND TFLITE_COREML_SRCS ${COREMLTOOLS_PROTO_SRCS})
+#  message("${TFLITE_COREML_SRCS}")
 endif()
 if(_TFLITE_ENABLE_NNAPI)
   find_package(fp16_headers REQUIRED)
