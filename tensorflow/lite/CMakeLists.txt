@@ -20,7 +20,6 @@
 # This has only been tested on Windows, Linux and macOS.
 #
 # The following are not currently supported:
-# - iOS
 # - Micro backend
 # - Tests
 # - Many features in experimental
