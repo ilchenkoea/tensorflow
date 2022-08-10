@@ -14,7 +14,7 @@ cmake ../../tensorflow/lite/c  \
 -GNinja
 ninja -j12 bundling_target
 
-cd ../.. && mkdir -p tflite-osx/lib && mv _build/macos/libtensorflow-lite-bundled.a tflite-osx/lib/libtflite.a
+cd ../.. && mkdir -p tflite-osx/libs && mv _build/macos/libtensorflow-lite-bundled.a tflite-osx/libs/libtflite.a
 mkdir -p tflite-osx/include/tensorflow/lite/c
 mkdir -p tflite-osx/include/tensorflow/lite/delegates/gpu
 cp tensorflow/lite/c/builtin_op_data.h tflite-osx/include/tensorflow/lite/c/

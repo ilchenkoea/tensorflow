@@ -382,6 +382,7 @@ if(TFLITE_ENABLE_METAL AND ("${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin" OR "${CMAKE
           ${METAL_DELEGATE_PATH}common.mm
           )
   set_source_files_properties(${TFLITE_METAL_SRCS} PROPERTIES LANGUAGE OBJCXX)
+  set_source_files_properties(${TFLITE_METAL_SRCS} PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
 
   list(APPEND TFLITE_METAL_SRCS
           ${TFLITE_SOURCE_DIR}/delegates/gpu/common/tasks/conv_metal.cc
