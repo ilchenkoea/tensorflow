@@ -50,6 +50,8 @@ typedef struct {
   TFLGpuDelegateWaitType wait_type;
   // Allows execution of integer quantized models
   bool enable_quantization;
+  // External command queue, should be id<MTLCommandQueue>
+  const void* external_command_queue;
 } TFLGpuDelegateOptions;
 
 // Populates TFLGpuDelegateOptions as follows:

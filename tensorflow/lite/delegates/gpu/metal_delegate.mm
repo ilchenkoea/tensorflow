@@ -180,7 +180,13 @@ class Delegate {
       options_ = TFLGpuDelegateOptionsDefault();
     }
     metal_device_ = MTLCreateSystemDefaultDevice();
-    command_queue_ = [metal_device_ newCommandQueue];
+
+    if (options->external_command_queue) {
+      command_queue_ = (__bridge id<MTLCommandQueue>)(options->external_command_queue);
+    } else {
+      command_queue_ = [metal_device_ newCommandQueue];
+    }
+
     if (options_.wait_type == TFLGpuDelegateWaitType::TFLGpuDelegateWaitTypeAggressive) {
       gpu_alarm_clock_ = std::unique_ptr<GpuAlarmClock>(new GpuAlarmClock(command_queue_));
       const std::string code = R"(
@@ -477,7 +483,8 @@ class Delegate {
       command_buffer = [command_queue_ commandBuffer];
     }
     const bool flush = external_command_buffer_ == nil &&
-        (options_.wait_type == TFLGpuDelegateWaitType::TFLGpuDelegateWaitTypeActive ||
+        (options_.wait_type == TFLGpuDelegateWaitType::TFLGpuDelegateWaitTypeDoNotWait ||
+         options_.wait_type == TFLGpuDelegateWaitType::TFLGpuDelegateWaitTypeActive ||
          options_.wait_type == TFLGpuDelegateWaitType::TFLGpuDelegateWaitTypeAggressive);
     const int flush_period = 8;
 
